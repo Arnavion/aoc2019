@@ -1,0 +1,8 @@
+[package]
+name = "aoc2019"
+version = "0.1.0"
+authors = ["Arnavion <arnavion@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+backtrace = "0.3"

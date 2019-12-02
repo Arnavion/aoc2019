@@ -37,6 +37,7 @@ macro_rules! main {
 
 main! {
 	day1,
+	day2,
 }
 
 fn open_input(filename: &str) -> Result<std::io::BufReader<std::fs::File>, Error> {

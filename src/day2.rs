@@ -60,23 +60,32 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 pub(crate) fn execute(ram: &mut Ram, input: impl IntoIterator<Item = i64>) -> Result<Vec<i64>, super::Error> {
 	let mut input = input.into_iter();
-	let mut output = vec![];
+
+	let mut result = vec![];
 
 	let mut pc = 0_usize;
 
-	loop {
-		let instruction = Instruction::parse(ram, &mut pc)?;
+	while let Some(output) = step(ram, &mut pc, &mut input)? {
+		result.push(output);
+	}
 
-		if let Some(out) = instruction.execute(ram, &mut pc, &mut input)? {
-			output.push(out);
+	Ok(result)
+}
+
+pub(crate) fn step(ram: &mut Ram, pc: &mut usize, input: impl IntoIterator<Item = i64>) -> Result<Option<i64>, super::Error> {
+	let mut input = input.into_iter();
+
+	loop {
+		let instruction = Instruction::parse(ram, pc)?;
+
+		if let Some(out) = instruction.execute(ram, pc, &mut input)? {
+			return Ok(Some(out));
 		}
 
 		if let Instruction::Halt = instruction {
-			break;
+			return Ok(None);
 		}
 	}
-
-	Ok(output)
 }
 
 #[derive(Debug)]

@@ -55,7 +55,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 		let result = result.ok_or("no solution")?;
 
-		println!("7b: {:?}", result);
+		println!("7b: {}", result);
 
 		assert_eq!(result, 36497698);
 	}
@@ -80,15 +80,20 @@ fn get_output_signal(ram: &[i64], settings: &[i64]) -> Result<i64, super::Error>
 fn get_output_signal2(ram: &[i64], settings: &[i64]) -> Result<i64, super::Error> {
 	let mut output = 0;
 
-	let mut rams: Vec<_> = settings.iter().map(|_| crate::day2::Ram(ram.to_owned())).collect();
-	let mut pcs: Vec<_> = settings.iter().map(|_| 0).collect();
+	let mut amplifiers: Vec<_> =
+		settings.iter().map(|_| {
+			let ram = crate::day2::Ram(ram.to_owned());
+			let pc = 0;
+			let relative_base = 0;
+			(ram, pc, relative_base)
+		}).collect();
 	let mut first_pass = true;
 
 	'outer: loop {
-		for (i, ((&setting, ram), pc)) in settings.iter().zip(&mut rams).zip(&mut pcs).enumerate() {
+		for (i, (&setting, (ram, pc, relative_base))) in settings.iter().zip(&mut amplifiers).enumerate() {
 			output = {
 				let input = if first_pass { vec![setting, output].into_iter() } else { vec![output].into_iter() };
-				let output = crate::day2::step(ram, pc, input)?;
+				let output = crate::day2::step(ram, pc, relative_base, input)?;
 				match (output, i) {
 					(Some(output), _) => output,
 					(None, 0) => break 'outer,

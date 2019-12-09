@@ -12,12 +12,12 @@ pub(super) fn run() -> Result<(), super::Error> {
 	{
 		let mut ram = Ram(ram.clone());
 
-		*ram.get_mut(1)? = 12;
-		*ram.get_mut(2)? = 2;
+		*ram.get_mut(1) = 12;
+		*ram.get_mut(2) = 2;
 
 		let _ = execute(&mut ram, std::iter::empty())?;
 
-		let result = ram.get(0)?;
+		let result = ram.get(0);
 
 		println!("2a: {}", result);
 
@@ -32,14 +32,14 @@ pub(super) fn run() -> Result<(), super::Error> {
 				let ram = ram.clone();
 				let mut ram = Ram(ram);
 
-				*ram.get_mut(1)? = noun;
-				*ram.get_mut(2)? = verb;
+				*ram.get_mut(1) = noun;
+				*ram.get_mut(2) = verb;
 
 				let _ = execute(&mut ram, std::iter::empty())?;
 
 				#[allow(clippy::inconsistent_digit_grouping)]
 				{
-					if ram.get(0)? == 1969_07_20 {
+					if ram.get(0) == 1969_07_20 {
 						result = Some((noun, verb));
 						break 'outer;
 					}
@@ -63,22 +63,23 @@ pub(crate) fn execute(ram: &mut Ram, input: impl IntoIterator<Item = i64>) -> Re
 
 	let mut result = vec![];
 
-	let mut pc = 0_usize;
+	let mut pc = 0;
+	let mut relative_base = 0;
 
-	while let Some(output) = step(ram, &mut pc, &mut input)? {
+	while let Some(output) = step(ram, &mut pc, &mut relative_base, &mut input)? {
 		result.push(output);
 	}
 
 	Ok(result)
 }
 
-pub(crate) fn step(ram: &mut Ram, pc: &mut usize, input: impl IntoIterator<Item = i64>) -> Result<Option<i64>, super::Error> {
+pub(crate) fn step(ram: &mut Ram, pc: &mut usize, relative_base: &mut isize, input: impl IntoIterator<Item = i64>) -> Result<Option<i64>, super::Error> {
 	let mut input = input.into_iter();
 
 	loop {
 		let instruction = Instruction::parse(ram, pc)?;
 
-		if let Some(out) = instruction.execute(ram, pc, &mut input)? {
+		if let Some(out) = instruction.execute(ram, pc, relative_base, &mut input)? {
 			return Ok(Some(out));
 		}
 
@@ -92,25 +93,34 @@ pub(crate) fn step(ram: &mut Ram, pc: &mut usize, input: impl IntoIterator<Item 
 pub(crate) struct Ram(pub(crate) Vec<i64>);
 
 impl Ram {
-	pub(crate) fn get(&self, index: usize) -> Result<i64, super::Error> {
-		Ok(*self.0.get(index).ok_or_else(|| format!("SIGSEGV({})", index))?)
+	pub(crate) fn get(&mut self, index: usize) -> i64 {
+		if index >= self.0.len() {
+			self.0.resize(index + 1, 0);
+		}
+
+		self.0[index]
 	}
 
-	pub(crate) fn get_mut(&mut self, index: usize) -> Result<&mut i64, super::Error> {
-		Ok(self.0.get_mut(index).ok_or_else(|| format!("SIGSEGV({})", index))?)
+	pub(crate) fn get_mut(&mut self, index: usize) -> &mut i64 {
+		if index >= self.0.len() {
+			self.0.resize(index + 1, 0);
+		}
+
+		&mut self.0[index]
 	}
 }
 
 #[derive(Clone, Copy, PartialEq)]
 pub(crate) enum Instruction {
-	Add(Parameter, Parameter, usize),
-	Mul(Parameter, Parameter, usize),
-	Store(usize),
-	Output(Parameter),
-	JumpIfTrue(Parameter, Parameter),
-	JumpIfFalse(Parameter, Parameter),
-	LessThan(Parameter, Parameter, usize),
-	Equals(Parameter, Parameter, usize),
+	Add(ParameterIn, ParameterIn, ParameterOut),
+	Mul(ParameterIn, ParameterIn, ParameterOut),
+	Store(ParameterOut),
+	Output(ParameterIn),
+	JumpIfTrue(ParameterIn, ParameterIn),
+	JumpIfFalse(ParameterIn, ParameterIn),
+	LessThan(ParameterIn, ParameterIn, ParameterOut),
+	Equals(ParameterIn, ParameterIn, ParameterOut),
+	SetRelativeBase(ParameterIn),
 	Halt,
 }
 
@@ -125,14 +135,15 @@ impl std::fmt::Debug for Instruction {
 			Instruction::JumpIfFalse(cond, r#in) => write!(f, "if {:?} == 0 then goto {:?}", cond, r#in),
 			Instruction::LessThan(in1, in2, out) => write!(f, "{:?} <- if {:?} < {:?} then 1 else 0", out, in1, in2),
 			Instruction::Equals(in1, in2, out) => write!(f, "{:?} <- if {:?} == {:?} then 1 else 0", out, in1, in2),
+			Instruction::SetRelativeBase(r#in) => write!(f, "relative_base <- {:?}", r#in),
 			Instruction::Halt => write!(f, "!"),
 		}
 	}
 }
 
 impl Instruction {
-	pub(crate) fn parse(ram: &Ram, pc: &mut usize) -> Result<Self, super::Error> {
-		let opcode = ram.get(*pc)?;
+	pub(crate) fn parse(ram: &mut Ram, pc: &mut usize) -> Result<Self, super::Error> {
+		let opcode = ram.get(*pc);
 		if opcode < 0 {
 			return Err(format!("SIGILL({})", opcode).into());
 		}
@@ -143,24 +154,13 @@ impl Instruction {
 
 		macro_rules! parameter {
 			() => {{
-				let value = ram.get(*pc)?;
+				let value = ram.get(*pc);
 				*pc += 1;
 
 				let mode = parameter_mode % 10;
 				#[allow(unused_assignments)] { parameter_mode /= 10; }
 
-				Parameter::new(mode.try_into()?, value)?
-			}};
-		}
-
-		macro_rules! parameter_as_out {
-			($ident:ident) => {{
-				if let Parameter::Position($ident) = $ident {
-					$ident
-				}
-				else {
-					return Err("SIGILL: output parameter does not have position mode".into());
-				}
+				ParameterIn::new(mode.try_into()?, value)?
 			}};
 		}
 
@@ -168,20 +168,20 @@ impl Instruction {
 			1 => {
 				let in1 = parameter!();
 				let in2 = parameter!();
-				let out = parameter!();
-				Ok(Instruction::Add(in1, in2, parameter_as_out!(out)))
+				let out = parameter!().try_into()?;
+				Ok(Instruction::Add(in1, in2, out))
 			},
 
 			2 => {
 				let in1 = parameter!();
 				let in2 = parameter!();
-				let out = parameter!();
-				Ok(Instruction::Mul(in1, in2, parameter_as_out!(out)))
+				let out = parameter!().try_into()?;
+				Ok(Instruction::Mul(in1, in2, out))
 			},
 
 			3 => {
-				let out = parameter!();
-				Ok(Instruction::Store(parameter_as_out!(out)))
+				let out = parameter!().try_into()?;
+				Ok(Instruction::Store(out))
 			},
 
 			4 => {
@@ -204,15 +204,20 @@ impl Instruction {
 			7 => {
 				let in1 = parameter!();
 				let in2 = parameter!();
-				let out = parameter!();
-				Ok(Instruction::LessThan(in1, in2, parameter_as_out!(out)))
+				let out = parameter!().try_into()?;
+				Ok(Instruction::LessThan(in1, in2, out))
 			},
 
 			8 => {
 				let in1 = parameter!();
 				let in2 = parameter!();
-				let out = parameter!();
-				Ok(Instruction::Equals(in1, in2, parameter_as_out!(out)))
+				let out = parameter!().try_into()?;
+				Ok(Instruction::Equals(in1, in2, out))
+			},
+
+			9 => {
+				let r#in = parameter!();
+				Ok(Instruction::SetRelativeBase(r#in))
 			},
 
 			99 => Ok(Instruction::Halt),
@@ -221,49 +226,55 @@ impl Instruction {
 		}
 	}
 
-	fn execute(self, ram: &mut Ram, pc: &mut usize, mut input: impl Iterator<Item = i64>) -> Result<Option<i64>, super::Error> {
+	fn execute(self, ram: &mut Ram, pc: &mut usize, relative_base: &mut isize, mut input: impl Iterator<Item = i64>) -> Result<Option<i64>, super::Error> {
 		match self {
 			Instruction::Add(in1, in2, out) => {
-				*ram.get_mut(out)? = in1.get(ram)? + in2.get(ram)?;
+				*out.get_mut(ram, *relative_base)? = in1.get(ram, *relative_base)? + in2.get(ram, *relative_base)?;
 				Ok(None)
 			},
 
 			Instruction::Mul(in1, in2, out) => {
-				*ram.get_mut(out)? = in1.get(ram)? * in2.get(ram)?;
+				*out.get_mut(ram, *relative_base)? = in1.get(ram, *relative_base)? * in2.get(ram, *relative_base)?;
 				Ok(None)
 			},
 
 			Instruction::Store(out) => {
-				*ram.get_mut(out)? = input.next().ok_or("EOF")?;
+				*out.get_mut(ram, *relative_base)? = input.next().ok_or("EOF")?;
 				Ok(None)
 			},
 
 			Instruction::Output(r#in) => {
-				let output = r#in.get(ram)?;
+				let output = r#in.get(ram, *relative_base)?;
 				Ok(Some(output))
 			},
 
 			Instruction::JumpIfTrue(cond, r#in) => {
-				if r#cond.get(ram)? != 0 {
-					*pc = r#in.get(ram)?.try_into()?;
+				if r#cond.get(ram, *relative_base)? != 0 {
+					*pc = r#in.get(ram, *relative_base)?.try_into()?;
 				}
 				Ok(None)
 			},
 
 			Instruction::JumpIfFalse(cond, r#in) => {
-				if r#cond.get(ram)? == 0 {
-					*pc = r#in.get(ram)?.try_into()?;
+				if r#cond.get(ram, *relative_base)? == 0 {
+					*pc = r#in.get(ram, *relative_base)?.try_into()?;
 				}
 				Ok(None)
 			},
 
 			Instruction::LessThan(in1, in2, out) => {
-				*ram.get_mut(out)? = if in1.get(ram)? < in2.get(ram)? { 1 } else { 0 };
+				*out.get_mut(ram, *relative_base)? = if in1.get(ram, *relative_base)? < in2.get(ram, *relative_base)? { 1 } else { 0 };
 				Ok(None)
 			},
 
 			Instruction::Equals(in1, in2, out) => {
-				*ram.get_mut(out)? = if in1.get(ram)? == in2.get(ram)? { 1 } else { 0 };
+				*out.get_mut(ram, *relative_base)? = if in1.get(ram, *relative_base)? == in2.get(ram, *relative_base)? { 1 } else { 0 };
+				Ok(None)
+			},
+
+			Instruction::SetRelativeBase(r#in) => {
+				let r#in: isize = r#in.get(ram, *relative_base)?.try_into()?;
+				*relative_base += r#in;
 				Ok(None)
 			},
 
@@ -274,24 +285,56 @@ impl Instruction {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) enum Parameter {
+pub(crate) enum ParameterIn {
 	Position(usize),
 	Immediate(i64),
+	Relative(isize),
 }
 
-impl Parameter {
+impl ParameterIn {
 	fn new(mode: u8, value: i64) -> Result<Self, super::Error> {
 		match mode {
-			0 => Ok(Parameter::Position(value.try_into()?)),
-			1 => Ok(Parameter::Immediate(value)),
+			0 => Ok(ParameterIn::Position(value.try_into()?)),
+			1 => Ok(ParameterIn::Immediate(value)),
+			2 => Ok(ParameterIn::Relative(value.try_into()?)),
 			mode => Err(format!("invalid parameter mode {}", mode).into()),
 		}
 	}
 
-	fn get(self, ram: &Ram) -> Result<i64, super::Error> {
-		match self {
-			Parameter::Position(pos) => ram.get(pos),
-			Parameter::Immediate(value) => Ok(value),
+	fn get(self, ram: &mut Ram, relative_base: isize) -> Result<i64, super::Error> {
+		let index = match self {
+			ParameterIn::Position(pos) => pos,
+			ParameterIn::Immediate(value) => return Ok(value),
+			ParameterIn::Relative(offset) => (relative_base + offset).try_into()?,
+		};
+		Ok(ram.get(index))
+	}
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum ParameterOut {
+	Position(usize),
+	Relative(isize),
+}
+
+impl ParameterOut {
+	fn get_mut(self, ram: &mut Ram, relative_base: isize) -> Result<&mut i64, super::Error> {
+		let index = match self {
+			ParameterOut::Position(pos) => pos,
+			ParameterOut::Relative(offset) => (relative_base + offset).try_into()?,
+		};
+		Ok(ram.get_mut(index))
+	}
+}
+
+impl std::convert::TryFrom<ParameterIn> for ParameterOut {
+	type Error = super::Error;
+
+	fn try_from(param: ParameterIn) -> Result<Self, Self::Error> {
+		match param {
+			ParameterIn::Position(pos) => Ok(ParameterOut::Position(pos)),
+			ParameterIn::Immediate(_) => Err("SIGILL: output parameter has immediate mode".into()),
+			ParameterIn::Relative(offset) => Ok(ParameterOut::Relative(offset)),
 		}
 	}
 }
@@ -323,12 +366,12 @@ mod tests {
 		}
 
 		test("1,10,20,30", &[
-			super::Instruction::Add(super::Parameter::Position(10), super::Parameter::Position(20), 30),
+			super::Instruction::Add(super::ParameterIn::Position(10), super::ParameterIn::Position(20), super::ParameterOut::Position(30)),
 		]);
 
 		test("1,9,10,3,2,3,11,0,99,30,40,50", &[
-			super::Instruction::Add(super::Parameter::Position(9), super::Parameter::Position(10), 3),
-			super::Instruction::Mul(super::Parameter::Position(3), super::Parameter::Position(11), 0),
+			super::Instruction::Add(super::ParameterIn::Position(9), super::ParameterIn::Position(10), super::ParameterOut::Position(3)),
+			super::Instruction::Mul(super::ParameterIn::Position(3), super::ParameterIn::Position(11), super::ParameterOut::Position(0)),
 			super::Instruction::Halt,
 		]);
 	}

@@ -45,6 +45,7 @@ main! {
 	day6,
 	day7,
 	day8,
+	day9,
 }
 
 fn open_input(filename: &str) -> Result<std::io::BufReader<std::fs::File>, Error> {

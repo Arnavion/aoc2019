@@ -59,7 +59,7 @@ mod tests {
 		}
 
 		test("1002,4,3,4", &[
-			crate::day2::Instruction::Mul(crate::day2::Parameter::Position(4), crate::day2::Parameter::Immediate(3), 4),
+			crate::day2::Instruction::Mul(crate::day2::ParameterIn::Position(4), crate::day2::ParameterIn::Immediate(3), crate::day2::ParameterOut::Position(4)),
 		]);
 	}
 

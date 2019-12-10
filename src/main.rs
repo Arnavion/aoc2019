@@ -3,6 +3,7 @@
 #![allow(
 	clippy::default_trait_access,
 	clippy::naive_bytecount,
+	clippy::type_complexity,
 	clippy::unreadable_literal,
 )]
 
@@ -48,6 +49,7 @@ main! {
 	day7,
 	day8,
 	day9,
+	day10,
 }
 
 fn open_input(filename: &str) -> Result<std::io::BufReader<std::fs::File>, Error> {

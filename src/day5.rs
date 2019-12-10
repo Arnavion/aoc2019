@@ -1,16 +1,12 @@
 pub(super) fn run() -> Result<(), super::Error> {
 	let line = super::read_input_lines::<String>("day5")?.next().ok_or("file is empty")??;
 
-	let ram: Result<Vec<_>, super::Error> =
-		line.split(',')
-		.map(|s| Ok(s.parse::<i64>()?))
-		.collect();
-	let ram = ram?;
+	let ram: crate::intcode::Ram = line.parse()?;
 
 	{
-		let mut ram = crate::day2::Ram(ram.clone());
+		let mut computer = crate::intcode::Computer::new(ram.clone());
 
-		let output = crate::day2::execute(&mut ram, std::iter::once(1))?;
+		let output = computer.execute(std::iter::once(1))?;
 		let result = *output.last().ok_or("no output")?;
 
 		println!("5a: {}", result);
@@ -19,9 +15,9 @@ pub(super) fn run() -> Result<(), super::Error> {
 	}
 
 	{
-		let mut ram = crate::day2::Ram(ram);
+		let mut computer = crate::intcode::Computer::new(ram);
 
-		let output = crate::day2::execute(&mut ram, std::iter::once(5))?;
+		let output = computer.execute(std::iter::once(5))?;
 		let result = *output.last().ok_or("no output")?;
 
 		println!("5b: {}", result);
@@ -36,17 +32,16 @@ pub(super) fn run() -> Result<(), super::Error> {
 mod tests {
 	#[test]
 	fn test_parse_program() {
-		fn test(actual: &str, expected: &[crate::day2::Instruction]) {
-			let ram: Vec<_> = actual.split(',').map(|s| s.parse().unwrap()).collect();
-			let mut ram = crate::day2::Ram(ram);
+		fn test(actual: &str, expected: &[crate::intcode::Instruction]) {
+			let mut ram = actual.parse().unwrap();
 
 			let mut actual = vec![];
 			let mut pc = 0;
 
 			loop {
-				let instruction = crate::day2::Instruction::parse(&mut ram, &mut pc).unwrap();
+				let instruction = crate::intcode::Instruction::parse(&mut ram, &mut pc).unwrap();
 				actual.push(instruction);
-				if let crate::day2::Instruction::Halt = instruction {
+				if let crate::intcode::Instruction::Halt = instruction {
 					break;
 				}
 
@@ -59,20 +54,23 @@ mod tests {
 		}
 
 		test("1002,4,3,4", &[
-			crate::day2::Instruction::Mul(crate::day2::ParameterIn::Position(4), crate::day2::ParameterIn::Immediate(3), crate::day2::ParameterOut::Position(4)),
+			crate::intcode::Instruction::Mul(
+				crate::intcode::ParameterIn::Position(4),
+				crate::intcode::ParameterIn::Immediate(3),
+				crate::intcode::ParameterOut::Position(4),
+			),
 		]);
 	}
 
 	#[test]
 	fn test_execute_program() {
 		fn test(program: &str, expected_ram: Option<&[i64]>, input: &[i64], expected_output: &[i64]) {
-			let ram: Vec<_> = program.split(',').map(|s| s.parse().unwrap()).collect();
-			let mut ram = crate::day2::Ram(ram);
+			let mut computer = crate::intcode::Computer::new(program.parse().unwrap());
 
-			let actual_output = crate::day2::execute(&mut ram, input.iter().copied()).unwrap();
+			let actual_output = computer.execute(input.iter().copied()).unwrap();
 
 			if let Some(expected_ram) = expected_ram {
-				assert_eq!(expected_ram, &*ram.0);
+				assert_eq!(expected_ram, &*computer.ram.0);
 			}
 
 			assert_eq!(expected_output, &*actual_output);

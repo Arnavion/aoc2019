@@ -1,15 +1,11 @@
 pub(super) fn run() -> Result<(), super::Error> {
 	let line = super::read_input_lines::<String>("day9")?.next().ok_or("file is empty")??;
 
-	let ram: Result<Vec<_>, super::Error> =
-		line.split(',')
-		.map(|s| Ok(s.parse()?))
-		.collect();
-	let ram = ram?;
+	let ram: crate::intcode::Ram = line.parse()?;
 
 	{
-		let mut ram = crate::day2::Ram(ram.clone());
-		let output = crate::day2::execute(&mut ram, std::iter::once(1))?;
+		let mut computer = crate::intcode::Computer::new(ram.clone());
+		let output = computer.execute(std::iter::once(1))?;
 		let result = *output.last().ok_or("no output")?;
 
 		println!("9a: {}", result);
@@ -18,8 +14,8 @@ pub(super) fn run() -> Result<(), super::Error> {
 	}
 
 	{
-		let mut ram = crate::day2::Ram(ram);
-		let output = crate::day2::execute(&mut ram, std::iter::once(2))?;
+		let mut computer = crate::intcode::Computer::new(ram);
+		let output = computer.execute(std::iter::once(2))?;
 		let result = *output.last().ok_or("no output")?;
 
 		println!("9b: {}", result);
@@ -35,10 +31,9 @@ mod tests {
 	#[test]
 	fn test_execute_program() {
 		fn test(program: &str, expected_output: &[i64]) {
-			let ram: Vec<_> = program.split(',').map(|s| s.parse().unwrap()).collect();
-			let mut ram = crate::day2::Ram(ram);
+			let mut computer = crate::intcode::Computer::new(program.parse().unwrap());
 
-			let actual_output = crate::day2::execute(&mut ram, std::iter::empty()).unwrap();
+			let actual_output = computer.execute(std::iter::empty()).unwrap();
 			assert_eq!(expected_output, &*actual_output);
 		}
 

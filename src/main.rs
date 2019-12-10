@@ -6,6 +6,8 @@
 	clippy::unreadable_literal,
 )]
 
+mod intcode;
+
 macro_rules! main {
 	($($mod:ident ,)*) => {
 		main! {

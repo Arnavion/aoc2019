@@ -1,11 +1,7 @@
 pub(super) fn run() -> Result<(), super::Error> {
 	const EPSILON: f64 = 0.0001;
 
-	let input = super::read_input_lines::<String>("day10")?;
-
-	// Since the first row of the puzzle input might start with `#`, this input file has an empty line between the header and the puzzle input.
-	// So it needs to be skipped.
-	let grid: Result<Vec<_>, super::Error> = input.skip(1).collect();
+	let grid: Result<Vec<_>, super::Error> = super::read_input_lines::<String>("day10")?.collect();
 	let grid = grid?;
 
 	let asteroids: Vec<_> =

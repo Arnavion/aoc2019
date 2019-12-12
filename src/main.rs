@@ -95,7 +95,6 @@ impl<E> From<E> for Error where E: Into<Box<dyn std::error::Error>> {
 struct Lines<T> {
 	inner: std::io::BufReader<std::fs::File>,
 	buf: String,
-	skipping_header: bool,
 	_ty: std::marker::PhantomData<fn() -> T>,
 }
 
@@ -104,7 +103,6 @@ impl<T> Lines<T> {
 		Lines {
 			inner,
 			buf: String::new(),
-			skipping_header: true,
 			_ty: Default::default(),
 		}
 	}
@@ -124,15 +122,6 @@ impl<T> Iterator for Lines<T> where T: std::str::FromStr, <T as std::str::FromSt
 		};
 		if read == 0 {
 			return None;
-		}
-
-		if self.skipping_header {
-			if self.buf.starts_with('#') {
-				return self.next();
-			}
-			else {
-				self.skipping_header = false;
-			}
 		}
 
 		let buf = self.buf.trim_end();

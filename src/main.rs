@@ -41,17 +41,17 @@ macro_rules! main {
 }
 
 main! {
-	day1,
-	day2,
-	day3,
-	day4,
-	day5,
-	day6,
-	day7,
-	day8,
-	day9,
-	day10,
 	day11,
+	day10,
+	day9,
+	day8,
+	day7,
+	day6,
+	day5,
+	day4,
+	day3,
+	day2,
+	day1,
 }
 
 fn read_input_lines<T>(filename: &str) -> Result<impl Iterator<Item = Result<T, Error>>, Error> where T: std::str::FromStr, <T as std::str::FromStr>::Err: Into<Error> {

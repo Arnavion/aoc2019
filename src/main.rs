@@ -54,15 +54,11 @@ main! {
 	day11,
 }
 
-fn open_input(filename: &str) -> Result<std::io::BufReader<std::fs::File>, Error> {
+fn read_input_lines<T>(filename: &str) -> Result<impl Iterator<Item = Result<T, Error>>, Error> where T: std::str::FromStr, <T as std::str::FromStr>::Err: Into<Error> {
 	let mut path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).to_owned();
 	path.push("inputs");
 	path.push(filename);
-	Ok(std::io::BufReader::new(std::fs::File::open(path)?))
-}
-
-fn read_input_lines<T>(filename: &str) -> Result<impl Iterator<Item = Result<T, Error>>, Error> where T: std::str::FromStr, <T as std::str::FromStr>::Err: Into<Error> {
-	let inner = open_input(filename)?;
+	let inner = std::io::BufReader::new(std::fs::File::open(path)?);
 	Ok(Lines::new(inner))
 }
 

@@ -41,6 +41,7 @@ macro_rules! main {
 }
 
 main! {
+	day14,
 	day13,
 	day12,
 	day11,

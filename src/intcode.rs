@@ -1,5 +1,6 @@
 use std::convert::TryInto;
 
+#[derive(Clone)]
 pub(crate) struct Computer {
 	pub(crate) ram: Ram,
 	pc: usize,

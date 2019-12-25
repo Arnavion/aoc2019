@@ -1,6 +1,7 @@
 #![deny(rust_2018_idioms, warnings)]
 #![deny(clippy::all, clippy::pedantic)]
 #![allow(
+	clippy::cognitive_complexity,
 	clippy::default_trait_access,
 	clippy::naive_bytecount,
 	clippy::too_many_arguments,
@@ -42,6 +43,7 @@ macro_rules! main {
 }
 
 main! {
+	day25,
 	day24,
 	day23,
 	day22,

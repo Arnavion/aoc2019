@@ -1,15 +1,12 @@
 #![deny(rust_2018_idioms, warnings)]
 #![deny(clippy::all, clippy::pedantic)]
 #![allow(
-	clippy::cognitive_complexity,
 	clippy::default_trait_access,
-	clippy::must_use_candidate,
 	clippy::naive_bytecount,
 	clippy::too_many_arguments,
 	clippy::too_many_lines,
 	clippy::type_complexity,
 	clippy::unreadable_literal,
-	clippy::use_self,
 )]
 
 mod intcode;

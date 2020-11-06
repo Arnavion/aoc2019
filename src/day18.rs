@@ -105,7 +105,7 @@ fn run_inner(input: impl Iterator<Item = Result<String, super::Error>>) -> Resul
 		}
 	}
 
-	let num_keys = tiles.values().filter(|tile| if let Tile::Key(_) = tile { true } else { false }).count();
+	let num_keys = tiles.values().filter(|tile| matches!(tile, Tile::Key(_))).count();
 
 
 	let result = std::sync::atomic::AtomicUsize::new(usize::max_value());

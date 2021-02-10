@@ -148,11 +148,11 @@ impl std::str::FromStr for Instruction {
 	type Err = super::Error;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		if s.starts_with("deal with increment ") {
-			Ok(Instruction::DealWithIncrement(s["deal with increment ".len()..].parse()?))
+		if let Some(rest) = s.strip_prefix("deal with increment ") {
+			Ok(Instruction::DealWithIncrement(rest.parse()?))
 		}
-		else if s.starts_with("cut ") {
-			Ok(Instruction::Cut(s["cut ".len()..].parse()?))
+		else if let Some(rest) = s.strip_prefix("cut ") {
+			Ok(Instruction::Cut(rest.parse()?))
 		}
 		else if s == "deal into new stack" {
 			Ok(Instruction::DealIntoNewStack)

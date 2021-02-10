@@ -2,6 +2,7 @@
 #![deny(clippy::all, clippy::pedantic)]
 #![allow(
 	clippy::default_trait_access,
+	clippy::let_and_return,
 	clippy::naive_bytecount,
 	clippy::too_many_arguments,
 	clippy::too_many_lines,

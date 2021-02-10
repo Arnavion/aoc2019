@@ -53,7 +53,7 @@ impl std::str::FromStr for Step {
 			_ => return Err(format!("malformed step {:?}", s).into()),
 		};
 
-		let size: isize = s[1..].parse().map_err(|_| format!("malformed step {:?}", s))?;
+		let size: isize = s[1..].parse().map_err(|err| format!("malformed step {:?}: {}", s, err))?;
 
 		Ok(if is_horizontal { Step::Horizontal(direction * size) } else { Step::Vertical(direction * size) })
 	}

@@ -92,7 +92,7 @@ fn part2(input: &[i32]) -> Result<i32, super::Error> {
 		std::mem::swap(&mut input, &mut output);
 	}
 
-	let result = num_from_digits(&input[(digest_pos + 1)..(digest_pos + 9)]);
+	let result = num_from_digits(&input[(digest_pos + 1)..][..8]);
 	Ok(result)
 }
 

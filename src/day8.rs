@@ -18,7 +18,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			.map(|(_, result)| result)
 			.ok_or("invalid input")?;
 
-		println!("8a: {}", result);
+		println!("8a: {result}");
 
 		assert_eq!(result, 1572);
 	}

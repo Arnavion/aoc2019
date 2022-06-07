@@ -2,17 +2,17 @@ pub(super) fn run() -> Result<(), super::Error> {
 	let input = parse_input(super::read_input_lines::<String>("day20")?)?;
 
 	{
-		let result = distance_to_exit(&input)?;
+		let result = distance_to_exit(&input);
 
-		println!("20a: {}", result);
+		println!("20a: {result}");
 
 		assert_eq!(result, 410);
 	}
 
 	{
-		let result = distance_to_exit_recursive(&input)?;
+		let result = distance_to_exit_recursive(&input);
 
-		println!("20b: {}", result);
+		println!("20b: {result}");
 
 		assert_eq!(result, 5084);
 	}
@@ -44,7 +44,7 @@ fn parse_input(input_iter: impl Iterator<Item = Result<String, super::Error>>) -
 			.filter_map(|(&(x, y), &c)| match c {
 				' ' | '#' | 'A'..='Z' => None,
 				'.' => Some(Ok(((x - 2, y - 2), Tile::Empty))),
-				c => Some(Err(format!("unexpected character in maze at {:?}: {:?}", (x - 2, y - 2), c).into())),
+				c => Some(Err(format!("unexpected character in maze at {:?}: {c:?}", (x - 2, y - 2)).into())),
 			})
 			.collect();
 		let mut tiles = tiles?;
@@ -52,8 +52,18 @@ fn parse_input(input_iter: impl Iterator<Item = Result<String, super::Error>>) -
 		for (&(x, y), &c) in &input {
 			if let c1 @ 'A'..='Z' = c {
 				let (previous_tile, next_tile, id) = match (input.get(&(x + 1, y)), input.get(&(x, y + 1))) {
-					(Some(&c2 @ 'A'..='Z'), _) => ((x - 3, y - 2), (x, y - 2), u16::from(c1 as u8 - b'A') * 100 + u16::from(c2 as u8 - b'A')),
-					(_, Some(&c2 @ 'A'..='Z')) => ((x - 2, y - 3), (x - 2, y), u16::from(c1 as u8 - b'A') * 100 + u16::from(c2 as u8 - b'A')),
+					(Some(&c2 @ 'A'..='Z'), _) => (
+						(x - 3, y - 2),
+						(x, y - 2),
+						u16::from(u8::try_from(c1).expect("A..Z fits in u8") - b'A') * 100 +
+						u16::from(u8::try_from(c2).expect("A..Z fits in u8") - b'A'),
+					),
+					(_, Some(&c2 @ 'A'..='Z')) => (
+						(x - 2, y - 3),
+						(x - 2, y),
+						u16::from(u8::try_from(c1).expect("A..Z fits in u8") - b'A') * 100 +
+						u16::from(u8::try_from(c2).expect("A..Z fits in u8") - b'A'),
+					),
 					_ => continue,
 				};
 
@@ -152,7 +162,7 @@ fn parse_input(input_iter: impl Iterator<Item = Result<String, super::Error>>) -
 						to_visit.push_back(((pos.0, pos.1 + 1), distance + 1));
 					},
 
-					Some(Tile::Entrance) | Some(Tile::Exit) | Some(Tile::Teleport(_)) => match neighbors.entry(pos) {
+					Some(Tile::Entrance | Tile::Exit | Tile::Teleport(_)) => match neighbors.entry(pos) {
 						std::collections::btree_map::Entry::Vacant(entry) => {
 							entry.insert(distance);
 						},
@@ -189,8 +199,7 @@ enum Tile {
 	Exit,
 }
 
-fn distance_to_exit(input: &Input) -> Result<usize, super::Error> {
-	#[allow(clippy::unneeded_field_pattern)]
+fn distance_to_exit(input: &Input) -> usize {
 	let Input { tiles, start, teleport_pairs, max_x: _, max_y: _, neighbors } = input;
 
 	let result = std::sync::atomic::AtomicUsize::new(usize::max_value());
@@ -198,7 +207,6 @@ fn distance_to_exit(input: &Input) -> Result<usize, super::Error> {
 	let best_paths: std::sync::Mutex<std::collections::BTreeMap<(usize, usize), usize>> = Default::default();
 
 	rayon::scope(|s| {
-		#[allow(clippy::needless_pass_by_value)]
 		fn solve<'scope>(
 			s: &rayon::Scope<'scope>,
 			tiles: &'scope std::collections::BTreeMap<(usize, usize), Tile>,
@@ -216,7 +224,7 @@ fn distance_to_exit(input: &Input) -> Result<usize, super::Error> {
 					return;
 				}
 				else if tiles.get(&pos) == Some(&Tile::Exit) {
-					if result.compare_and_swap(result_value, distance, std::sync::atomic::Ordering::AcqRel) == result_value {
+					if result.compare_exchange_weak(result_value, distance, std::sync::atomic::Ordering::AcqRel, std::sync::atomic::Ordering::Acquire) == Ok(result_value) {
 						return;
 					}
 				}
@@ -272,7 +280,7 @@ fn distance_to_exit(input: &Input) -> Result<usize, super::Error> {
 
 		s.spawn(|s| solve(
 			s,
-			&tiles, &teleport_pairs, &neighbors,
+			tiles, teleport_pairs, neighbors,
 			&best_paths,
 			0, *start,
 			&result,
@@ -280,10 +288,10 @@ fn distance_to_exit(input: &Input) -> Result<usize, super::Error> {
 	});
 
 	let result = result.load(std::sync::atomic::Ordering::Acquire);
-	Ok(result)
+	result
 }
 
-fn distance_to_exit_recursive(input: &Input) -> Result<usize, super::Error> {
+fn distance_to_exit_recursive(input: &Input) -> usize {
 	let Input { tiles, start, teleport_pairs, max_x, max_y, neighbors } = input;
 
 	let result = std::sync::atomic::AtomicUsize::new(usize::max_value());
@@ -291,7 +299,6 @@ fn distance_to_exit_recursive(input: &Input) -> Result<usize, super::Error> {
 	let best_paths: std::sync::Mutex<std::collections::BTreeMap<((usize, usize), usize), usize>> = Default::default();
 
 	rayon::scope(|s| {
-		#[allow(clippy::needless_pass_by_value)]
 		fn solve<'scope>(
 			s: &rayon::Scope<'scope>,
 			tiles: &'scope std::collections::BTreeMap<(usize, usize), Tile>,
@@ -312,7 +319,7 @@ fn distance_to_exit_recursive(input: &Input) -> Result<usize, super::Error> {
 					return;
 				}
 				else if tiles.get(&pos) == Some(&Tile::Exit) && depth == 0 {
-					if result.compare_and_swap(result_value, distance, std::sync::atomic::Ordering::AcqRel) == result_value {
+					if result.compare_exchange_weak(result_value, distance, std::sync::atomic::Ordering::AcqRel, std::sync::atomic::Ordering::Acquire) == Ok(result_value) {
 						return;
 					}
 				}
@@ -383,7 +390,7 @@ fn distance_to_exit_recursive(input: &Input) -> Result<usize, super::Error> {
 
 		s.spawn(|s| solve(
 			s,
-			&tiles, &teleport_pairs, *max_x, *max_y, &neighbors,
+			tiles, teleport_pairs, *max_x, *max_y, neighbors,
 			&best_paths,
 			0, *start, 0,
 			&result,
@@ -391,7 +398,7 @@ fn distance_to_exit_recursive(input: &Input) -> Result<usize, super::Error> {
 	});
 
 	let result = result.load(std::sync::atomic::Ordering::Acquire);
-	Ok(result)
+	result
 }
 
 fn reachable(
@@ -484,7 +491,7 @@ mod tests {
 	fn test_distance_to_exit() {
 		fn test(input: &str, expected_distance: usize) {
 			let input = super::parse_input(input.lines().map(|s| Ok(s.to_owned()))).unwrap();
-			let actual_distance = super::distance_to_exit(&input).unwrap();
+			let actual_distance = super::distance_to_exit(&input);
 			assert_eq!(expected_distance, actual_distance);
 		}
 
@@ -559,7 +566,7 @@ YN......#               VT..#....QG
 	fn test_distance_to_exit_recursive() {
 		fn test(input: &str, expected_distance: usize) {
 			let input = super::parse_input(input.lines().map(|s| Ok(s.to_owned()))).unwrap();
-			let actual_distance = super::distance_to_exit_recursive(&input).unwrap();
+			let actual_distance = super::distance_to_exit_recursive(&input);
 			assert_eq!(expected_distance, actual_distance);
 		}
 

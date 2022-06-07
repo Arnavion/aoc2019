@@ -4,7 +4,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 		.map(|line| {
 			let line = line?;
 			let steps: Result<Vec<Step>, super::Error> = line.split(',').map(str::parse).collect();
-			Ok(steps?)
+			steps
 		})
 		.collect();
 	let wires = wires?;
@@ -15,7 +15,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 	{
 		let result = find_min_manhattan_distance(intersections.iter().copied())?;
 
-		println!("3a: {}", result);
+		println!("3a: {result}");
 
 		assert_eq!(result, 860);
 	}
@@ -27,7 +27,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			.min()
 			.ok_or("no solution")?;
 
-		println!("3b: {}", result);
+		println!("3b: {result}");
 
 		assert_eq!(result, 9238);
 	}
@@ -50,10 +50,10 @@ impl std::str::FromStr for Step {
 			"L" => (true, -1),
 			"R" => (true, 1),
 			"U" => (false, 1),
-			_ => return Err(format!("malformed step {:?}", s).into()),
+			_ => return Err(format!("malformed step {s:?}").into()),
 		};
 
-		let size: isize = s[1..].parse().map_err(|err| format!("malformed step {:?}: {}", s, err))?;
+		let size: isize = s[1..].parse().map_err(|err| format!("malformed step {s:?}: {err}"))?;
 
 		Ok(if is_horizontal { Step::Horizontal(direction * size) } else { Step::Vertical(direction * size) })
 	}
@@ -117,7 +117,7 @@ fn find_intersections<'a>(wires: impl IntoIterator<Item = &'a [Step]>) -> std::c
 fn find_min_manhattan_distance(intersections: impl IntoIterator<Item = (isize, isize)>) -> Result<usize, super::Error> {
 	let result =
 		intersections.into_iter()
-		.map(|(x, y)| x.abs() as usize + y.abs() as usize)
+		.map(|(x, y)| x.unsigned_abs() + y.unsigned_abs())
 		.min()
 		.ok_or("no solution")?;
 	Ok(result)

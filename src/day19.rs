@@ -13,7 +13,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			.flat_map(|x| (0..50).map(move |y| (x, y)))
 			.try_fold(0, |sum, (x, y)| test_beam(x, y, &ram).map(|in_beam| if in_beam { sum + 1 } else { sum }))?;
 
-		println!("19a: {}", result);
+		println!("19a: {result}");
 
 		assert_eq!(result, 201);
 	}
@@ -69,8 +69,8 @@ pub(super) fn run() -> Result<(), super::Error> {
 					Ok(false) => None,
 					Err(err) => Some(Err(err)),
 				});
-			let x_min = x_s.next().ok_or_else(|| format!("beam not found at y = {}", y))??;
-			let x_max = x_s.next_back().ok_or_else(|| format!("beam too thin at y = {}", y))??;
+			let x_min = x_s.next().ok_or_else(|| format!("beam not found at y = {y}"))??;
+			let x_max = x_s.next_back().ok_or_else(|| format!("beam too thin at y = {y}"))??;
 
 			// This y is only a candidate if there are at least 100 x's, and the right-most x has at least 100 spots below it.
 			//
@@ -103,7 +103,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			}
 		}
 
-		println!("19b: {}", result);
+		println!("19b: {result}");
 
 		assert_eq!(result, 6610984);
 	}
@@ -117,6 +117,6 @@ fn test_beam(x: i64, y: i64, ram: &crate::intcode::Ram) -> Result<bool, super::E
 	match output {
 		0 => Ok(false),
 		1 => Ok(true),
-		output => Err(format!("invalid state {}", output).into()),
+		output => Err(format!("invalid state {output}").into()),
 	}
 }

@@ -4,7 +4,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			super::read_input_lines::<u64>("day1")?
 			.try_fold(0, |prev, curr| -> Result<_, super::Error> { Ok(prev + calculate_fuel(curr?)) })?;
 
-		println!("1a: {}", result);
+		println!("1a: {result}");
 
 		assert_eq!(result, 3318632);
 	}
@@ -14,7 +14,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			super::read_input_lines::<u64>("day1")?
 			.try_fold(0, |prev, curr| -> Result<_, super::Error> { Ok(prev + calculate_fuel_recursive(curr?)) })?;
 
-		println!("1b: {}", result);
+		println!("1b: {result}");
 
 		assert_eq!(result, 4975084);
 	}

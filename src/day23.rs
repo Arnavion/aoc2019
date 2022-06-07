@@ -24,7 +24,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 				if target == 255 {
 					nat = Some((x, y));
 					if !got_first_nat {
-						println!("23a: {}", y);
+						println!("23a: {y}");
 
 						assert_eq!(y, 23057);
 
@@ -61,7 +61,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 					if let Some((x, y)) = nat.take() {
 						if let Some(previous_nat_y) = previous_nat_y {
 							if previous_nat_y == y {
-								println!("23b: {}", y);
+								println!("23b: {y}");
 
 								assert_eq!(y, 15156);
 
@@ -143,7 +143,7 @@ fn spawn_computers(ram: &crate::intcode::Ram) ->
 				let _ = execute(computer, input, &output_sender);
 			});
 
-			input_sender.send(i as i64).unwrap(); // Address
+			input_sender.send(i).unwrap(); // Address
 			input_sender.send(-1_i64).unwrap(); // No input initially
 
 			(input_sender, waiting_for_input, output_receiver)

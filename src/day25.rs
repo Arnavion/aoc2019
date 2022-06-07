@@ -78,7 +78,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			let output = computer.step(input)?.ok_or("EOF")?;
 			match output.try_into()? {
 				b'\n' => {
-					println!("> {}", line);
+					println!("> {line}");
 
 					if line == "Command?" {
 						waiting_for_input = true;
@@ -87,7 +87,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 					line.clear();
 				},
 
-				b => line.push(b as char),
+				b => line.push(b.into()),
 			}
 		};
 	}
@@ -226,7 +226,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 														result = Some(
 															line_parts
 															.nth(11)
-															.ok_or_else(|| format!("could not extract password from line {:?}", line))?
+															.ok_or_else(|| format!("could not extract password from line {line:?}"))?
 															.to_owned()
 														);
 
@@ -236,7 +236,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 													line.clear();
 												},
 
-												b => line.push(b as char),
+												b => line.push(b.into()),
 											}
 										}
 									}
@@ -250,7 +250,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 		let result = result.ok_or("no solution")?;
 
-		println!("25a: {}", result);
+		println!("25a: {result}");
 
 		assert_eq!(result, "136839232");
 	}

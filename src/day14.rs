@@ -8,7 +8,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 	{
 		let result = get_required_ore(&reactions, 1)?;
 
-		println!("14a: {}", result);
+		println!("14a: {result}");
 
 		assert_eq!(result, 843220);
 	};
@@ -16,7 +16,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 	{
 		let result = fuel_from_trillion_ore(&reactions)?;
 
-		println!("14b: {}", result);
+		println!("14b: {result}");
 
 		assert_eq!(result, 2169535);
 	}
@@ -97,7 +97,7 @@ fn get_required_ore<'a>(
 		// Going to find the reaction for this now. First restore the need for the current product.
 		*need.entry(product).or_default() += product_num;
 
-		let reaction = reactions.get(product).ok_or_else(|| format!("no reaction produced {}", product))?;
+		let reaction = reactions.get(product).ok_or_else(|| format!("no reaction produced {product}"))?;
 
 		let num_reactions = (product_num + reaction.0 - 1) / reaction.0; // Round up
 
@@ -121,7 +121,7 @@ fn fuel_from_trillion_ore(reactions: &std::collections::BTreeMap<&str, (u64, Vec
 	let mut high = 1;
 
 	loop {
-		let result = get_required_ore(&reactions, high)?;
+		let result = get_required_ore(reactions, high)?;
 		match result.cmp(&1_000_000_000_000) {
 			std::cmp::Ordering::Less => {
 				low = high;
@@ -137,7 +137,7 @@ fn fuel_from_trillion_ore(reactions: &std::collections::BTreeMap<&str, (u64, Vec
 
 	while high - low > 1 {
 		let mid = (low + high) / 2;
-		let result = get_required_ore(&reactions, mid)?;
+		let result = get_required_ore(reactions, mid)?;
 		match result.cmp(&1_000_000_000_000) {
 			std::cmp::Ordering::Less => low = mid,
 

@@ -25,7 +25,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			.map(|(x, y)| 2_usize.pow((x + y * 5).try_into().unwrap()))
 			.sum();
 
-		println!("24a: {}", result);
+		println!("24a: {result}");
 
 		assert_eq!(result, 32526865);
 	}
@@ -42,7 +42,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 		let result = bugs.len();
 
-		println!("24b: {}", result);
+		println!("24b: {result}");
 
 		assert_eq!(result, 2009);
 	}
@@ -82,8 +82,7 @@ fn evolve(bugs: &std::collections::BTreeSet<(usize, usize)>) -> std::collections
 				.count();
 
 			match (has_bug, num_adjacent) {
-				(true, 1) |
-				(false, 1) |
+				(true | false, 1) |
 				(false, 2) => {
 					true
 				},
@@ -109,10 +108,7 @@ fn adjacent((x, y): (usize, usize)) -> &'static [(usize, usize)] {
 				match (x, y) {
 					(0, _) => (),
 
-					(1, _) |
-					(2, _) |
-					(3, _) |
-					(4, _) => {
+					(1 | 2 | 3 | 4, _) => {
 						adjacent.push((x - 1, y));
 					},
 
@@ -121,10 +117,7 @@ fn adjacent((x, y): (usize, usize)) -> &'static [(usize, usize)] {
 
 				// Right
 				match (x, y) {
-					(0, _) |
-					(1, _) |
-					(2, _) |
-					(3, _) => {
+					(0 | 1 | 2 | 3, _) => {
 						adjacent.push((x + 1, y));
 					},
 
@@ -137,10 +130,7 @@ fn adjacent((x, y): (usize, usize)) -> &'static [(usize, usize)] {
 				match (x, y) {
 					(_, 0) => (),
 
-					(_, 1) |
-					(_, 2) |
-					(_, 3) |
-					(_, 4) => {
+					(_, 1 | 2 | 3 | 4) => {
 						adjacent.push((x, y - 1));
 					},
 
@@ -149,10 +139,7 @@ fn adjacent((x, y): (usize, usize)) -> &'static [(usize, usize)] {
 
 				// Down
 				match (x, y) {
-					(_, 0) |
-					(_, 1) |
-					(_, 2) |
-					(_, 3) => {
+					(_, 0 | 1 | 2 | 3) => {
 						adjacent.push((x, y + 1));
 					},
 
@@ -196,8 +183,7 @@ fn evolve2(bugs: &std::collections::BTreeSet<(isize, usize, usize)>) -> std::col
 				.count();
 
 			match (has_bug, num_adjacent) {
-				(true, 1) |
-				(false, 1) |
+				(true | false, 1) |
 				(false, 2) => {
 					true
 				},
@@ -225,10 +211,8 @@ fn adjacent2((x, y): (usize, usize)) -> &'static [(isize, usize, usize)] {
 						adjacent.push((-1, 1, 2));
 					},
 
-					(1, _) |
-					(2, _) |
-					(3, 0) | (3, 1) | (3, 3) | (3, 4) |
-					(4, _) => {
+					(1 | 2 | 4, _) |
+					(3, 0 | 1 | 3 | 4) => {
 						adjacent.push((0, x - 1, y));
 					},
 
@@ -245,10 +229,8 @@ fn adjacent2((x, y): (usize, usize)) -> &'static [(isize, usize, usize)] {
 
 				// Right
 				match (x, y) {
-					(0, _) |
-					(1, 0) | (1, 1) | (1, 3) | (1, 4) |
-					(2, _) |
-					(3, _) => {
+					(0 | 2 | 3, _) |
+					(1, 0 | 1 | 3 | 4) => {
 						adjacent.push((0, x + 1, y));
 					},
 
@@ -273,10 +255,8 @@ fn adjacent2((x, y): (usize, usize)) -> &'static [(isize, usize, usize)] {
 						adjacent.push((-1, 2, 1));
 					},
 
-					(_, 1) |
-					(_, 2) |
-					(0, 3) | (1, 3) | (3, 3) | (4, 3) |
-					(_, 4) => {
+					(_, 1 | 2 | 4) |
+					(0 | 1 | 3 | 4, 3) => {
 						adjacent.push((0, x, y - 1));
 					},
 
@@ -293,10 +273,8 @@ fn adjacent2((x, y): (usize, usize)) -> &'static [(isize, usize, usize)] {
 
 				// Down
 				match (x, y) {
-					(_, 0) |
-					(0, 1) | (1, 1) | (3, 1) | (4, 1) |
-					(_, 2) |
-					(_, 3) => {
+					(_, 0 | 2 | 3) |
+					(0 | 1 | 3 | 4, 1) => {
 						adjacent.push((0, x, y + 1));
 					},
 

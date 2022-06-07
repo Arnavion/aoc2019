@@ -7,7 +7,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 	{
 		let result = (lower..=upper).filter(|&num| is_valid(num)).count();
 
-		println!("4a: {}", result);
+		println!("4a: {result}");
 
 		assert_eq!(result, 1919);
 	}
@@ -15,7 +15,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 	{
 		let result = (lower..=upper).filter(|&num| is_valid2(num)).count();
 
-		println!("4b: {}", result);
+		println!("4b: {result}");
 
 		assert_eq!(result, 1291);
 	}
@@ -27,7 +27,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 fn digits(mut num: u32) -> Vec<u8> {
 	let mut result = vec![];
 	while num > 0 {
-		result.push((num % 10) as u8);
+		result.push(u8::try_from(num % 10).expect("0..10 fits in u8"));
 		num /= 10;
 	}
 	result
@@ -36,7 +36,7 @@ fn digits(mut num: u32) -> Vec<u8> {
 fn histogram(digits: &[u8]) -> [usize; 10] {
 	let mut result = [0; 10];
 	for &digit in digits {
-		result[digit as usize] += 1;
+		result[usize::from(digit)] += 1;
 	}
 	result
 }

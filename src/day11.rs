@@ -10,7 +10,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 		let result = cells.len();
 
-		println!("11a: {}", result);
+		println!("11a: {result}");
 
 		assert_eq!(result, 2018);
 	}
@@ -308,7 +308,7 @@ fn execute(ram: &crate::intcode::Ram, cells: &mut std::collections::BTreeMap<(is
 		let next_color = match next_color {
 			Some(0) => Color::Black,
 			Some(1) => Color::White,
-			Some(next_color) => return Err(format!("invalid color {}", next_color).into()),
+			Some(next_color) => return Err(format!("invalid color {next_color}").into()),
 			None => break,
 		};
 		cells.insert(pos, next_color);
@@ -317,7 +317,7 @@ fn execute(ram: &crate::intcode::Ram, cells: &mut std::collections::BTreeMap<(is
 		match turn_order {
 			Some(0) => direction.turn_left(),
 			Some(1) => direction.turn_right(),
-			Some(turn_order) => return Err(format!("invalid turn order {}", turn_order).into()),
+			Some(turn_order) => return Err(format!("invalid turn order {turn_order}").into()),
 			None => break,
 		}
 

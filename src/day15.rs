@@ -83,14 +83,13 @@ pub(super) fn run() -> Result<(), super::Error> {
 			render_post(&mut stdout)?;
 		}
 
-		#[allow(clippy::find_map)] // "More succinctly" my ass
 		let result =
 			tiles.values()
 			.find(|(tile, _)| *tile == Tile::Oxygen)
 			.map(|(_, distance)| *distance)
 			.ok_or("no solution")?;
 
-		println!("15a: {}", result);
+		println!("15a: {result}");
 
 		assert_eq!(result, 262);
 
@@ -98,7 +97,6 @@ pub(super) fn run() -> Result<(), super::Error> {
 	};
 
 	{
-		#[allow(clippy::find_map)] // "More succinctly" my ass
 		let o2_pos =
 			tiles.iter()
 			.find(|(_, (tile, _))| *tile == Tile::Oxygen)
@@ -122,7 +120,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 				match tiles.get(&pos).unwrap() {
 					// Only visit empty or oxygen generator tiles
-					(Tile::Empty, _) | (Tile::Oxygen, _) => {
+					(Tile::Empty | Tile::Oxygen, _) => {
 						if visited_tiles.insert(pos) {
 							// Haven't visited this tile before
 							tiles_to_visit.push_back((pos, time + 1));
@@ -134,7 +132,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			}
 		}
 
-		println!("15b: {}", result);
+		println!("15b: {result}");
 
 		assert_eq!(result, 314);
 	}
@@ -193,7 +191,7 @@ impl std::convert::TryFrom<i64> for RobotStatus {
 			0 => Ok(RobotStatus::HitWall),
 			1 => Ok(RobotStatus::Moved(false)),
 			2 => Ok(RobotStatus::Moved(true)),
-			i => Err(format!("invalid status {}", i).into()),
+			i => Err(format!("invalid status {i}").into()),
 		}
 	}
 }

@@ -9,7 +9,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 		let output = computer.execute(std::iter::once(1))?;
 		let result = *output.last().ok_or("no output")?;
 
-		println!("5a: {}", result);
+		println!("5a: {result}");
 
 		assert_eq!(result, 9654885);
 	}
@@ -20,7 +20,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 		let output = computer.execute(std::iter::once(5))?;
 		let result = *output.last().ok_or("no output")?;
 
-		println!("5b: {}", result);
+		println!("5b: {result}");
 
 		assert_eq!(result, 7079459);
 	}

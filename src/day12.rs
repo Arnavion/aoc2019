@@ -31,7 +31,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 		let result = total_energy(&states_x, &states_y, &states_z);
 
-		println!("12a: {}", result);
+		println!("12a: {result}");
 
 		assert_eq!(result, 9139);
 	}
@@ -45,7 +45,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 		let z_cycle_len = find_cycle_len(&mut states_z.clone(), &mut states_z);
 
 		// Use the right tool for the job
-		println!("12b: https://www.wolframalpha.com/input/?i=lcm%28{}%2C+{}%2C+{}%29", x_cycle_len, y_cycle_len, z_cycle_len);
+		println!("12b: https://www.wolframalpha.com/input/?i=lcm%28{x_cycle_len}%2C+{y_cycle_len}%2C+{z_cycle_len}%29");
 
 		assert_eq!((x_cycle_len, y_cycle_len, z_cycle_len), (268296, 231614, 108344));
 	}

@@ -3,6 +3,7 @@
 #![allow(
 	clippy::default_trait_access,
 	clippy::let_and_return,
+	clippy::let_underscore_drop,
 	clippy::naive_bytecount,
 	clippy::too_many_arguments,
 	clippy::too_many_lines,
@@ -86,7 +87,7 @@ impl std::fmt::Debug for Error {
 
 		let mut source = self.0.source();
 		while let Some(err) = source {
-			writeln!(f, "caused by: {}", err)?;
+			writeln!(f, "caused by: {err}")?;
 			source = err.source();
 		}
 

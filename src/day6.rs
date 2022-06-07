@@ -17,7 +17,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 	{
 		let result = num_orbits(&orbits_parent_to_child);
 
-		println!("6a: {}", result);
+		println!("6a: {result}");
 
 		assert_eq!(result, 144909);
 	}
@@ -25,7 +25,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 	{
 		let result = num_transfers("YOU", "SAN", &orbits_child_to_parent)?;
 
-		println!("6b: {}", result);
+		println!("6b: {result}");
 
 		assert_eq!(result, 259);
 	}
@@ -53,8 +53,8 @@ fn num_orbits(orbits_parent_to_child: &std::collections::BTreeMap<&str, Vec<&str
 }
 
 fn num_transfers(start_child: &str, end_child: &str, orbits_child_to_parent: &std::collections::BTreeMap<&str, &str>) -> Result<usize, super::Error> {
-	let path_from_start_child_to_com = path_from_body_to_com(start_child, &orbits_child_to_parent);
-	let path_from_end_child_to_com = path_from_body_to_com(end_child, &orbits_child_to_parent);
+	let path_from_start_child_to_com = path_from_body_to_com(start_child, orbits_child_to_parent);
+	let path_from_end_child_to_com = path_from_body_to_com(end_child, orbits_child_to_parent);
 
 	for (start_ancestor_pos, &start_ancestor) in path_from_start_child_to_com.iter().enumerate() {
 		if let Some(end_ancestor_pos) = path_from_end_child_to_com.iter().position(|&end_ancestor| end_ancestor == start_ancestor) {

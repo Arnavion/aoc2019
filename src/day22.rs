@@ -16,7 +16,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			input.iter()
 			.fold(2019, |card_pos, instruction| instruction.apply(card_pos, NUM_CARDS));
 
-		println!("22a: {}", result);
+		println!("22a: {result}");
 
 		assert_eq!(result, 8502);
 	}
@@ -67,7 +67,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 		let result = 41685581334351_usize;
 
-		println!("22b: {}", result);
+		println!("22b: {result}");
 
 		assert_eq!(result, 41685581334351_usize);
 	}
@@ -91,13 +91,13 @@ impl Instruction {
 
 			Instruction::Cut(cut) if cut >= 0 => {
 				#[allow(clippy::cast_sign_loss)]
-				let cut = cut as usize % num_cards;
+				let cut = cut.unsigned_abs() % num_cards;
 				(card_pos + num_cards - cut) % num_cards
 			},
 
 			Instruction::Cut(cut) => {
 				#[allow(clippy::cast_sign_loss)]
-				let cut = (-cut) as usize % num_cards;
+				let cut = cut.unsigned_abs() % num_cards;
 				(card_pos + cut) % num_cards
 			},
 
@@ -127,13 +127,13 @@ impl Instruction {
 
 			Instruction::Cut(cut) if cut >= 0 => {
 				#[allow(clippy::cast_sign_loss)]
-				let cut = cut as usize % num_cards;
+				let cut = cut.unsigned_abs() % num_cards;
 				(card_pos + cut) % num_cards
 			},
 
 			Instruction::Cut(cut) => {
 				#[allow(clippy::cast_sign_loss)]
-				let cut = (-cut) as usize % num_cards;
+				let cut = cut.unsigned_abs() % num_cards;
 				(card_pos + num_cards - cut) % num_cards
 			},
 
@@ -158,7 +158,7 @@ impl std::str::FromStr for Instruction {
 			Ok(Instruction::DealIntoNewStack)
 		}
 		else {
-			Err(format!("could not parse {:?} as an Instruction", s).into())
+			Err(format!("could not parse {s:?} as an Instruction").into())
 		}
 	}
 }

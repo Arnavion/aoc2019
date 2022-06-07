@@ -13,7 +13,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 		let result = computer.ram.get(0);
 
-		println!("2a: {}", result);
+		println!("2a: {result}");
 
 		assert_eq!(result, 3895705);
 	}
@@ -43,7 +43,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 		let (noun, verb) = result.ok_or("no solution")?;
 		let result = noun * 100 + verb;
 
-		println!("2b: {}", result);
+		println!("2b: {result}");
 
 		assert_eq!(result, 6417);
 	}

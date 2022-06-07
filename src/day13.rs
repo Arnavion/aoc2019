@@ -12,13 +12,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 		let mut computer = crate::intcode::Computer::new(ram.clone());
 
-		#[allow(clippy::while_let_loop)] // False positive
-		loop {
-			let x = match computer.step(std::iter::empty())? {
-				Some(x) => x,
-				None => break,
-			};
-
+		while let Some(x) = computer.step(std::iter::empty())? {
 			let y = match computer.step(std::iter::empty())? {
 				Some(y) => y,
 				None => break,
@@ -35,7 +29,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 		let result = tiles.values().filter(|&&tile| tile == Tile::Block).count();
 
-		println!("13a: {}", result);
+		println!("13a: {result}");
 
 		assert_eq!(result, 318);
 	}
@@ -61,13 +55,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			render_pre(&mut stdout)?;
 		}
 
-		#[allow(clippy::while_let_loop)] // False positive
-		loop {
-			let x = match computer.step(std::iter::once(joystick))? {
-				Some(x) => x,
-				None => break,
-			};
-
+		while let Some(x) = computer.step(std::iter::once(joystick))? {
 			let y = match computer.step(std::iter::empty())? {
 				Some(y) => y,
 				None => break,
@@ -105,7 +93,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			render_post(&mut stdout)?;
 		}
 
-		println!("13b: {}", score);
+		println!("13b: {score}");
 
 		assert_eq!(score, 16309);
 	}
@@ -132,7 +120,7 @@ impl std::convert::TryFrom<i64> for Tile {
 			2 => Ok(Tile::Block),
 			3 => Ok(Tile::HorizontalPaddle),
 			4 => Ok(Tile::Ball),
-			tile_id => Err(format!("invalid tile ID {}", tile_id).into()),
+			tile_id => Err(format!("invalid tile ID {tile_id}").into()),
 		}
 	}
 }

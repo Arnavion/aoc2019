@@ -3,7 +3,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 		let input = super::read_input_lines::<String>("day18a")?;
 		let result = run_inner(input)?;
 
-		println!("18a: {}", result);
+		println!("18a: {result}");
 
 		assert_eq!(result, 5198);
 	}
@@ -12,7 +12,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 		let input = super::read_input_lines::<String>("day18b")?;
 		let result = run_inner(input)?;
 
-		println!("18b: {}", result);
+		println!("18b: {result}");
 
 		assert_eq!(result, 1736);
 	}
@@ -31,9 +31,9 @@ fn run_inner(input: impl Iterator<Item = Result<String, super::Error>>) -> Resul
 				'#' => (),
 				'.' => { tiles.insert((x, y), Tile::Empty); },
 				'@' => { start.push((x, y)); tiles.insert((x, y), Tile::Empty); },
-				c @ 'A'..='Z' => { tiles.insert((x, y), Tile::Gate(c as u8 - b'A')); },
-				c @ 'a'..='z' => { tiles.insert((x, y), Tile::Key(c as u8 - b'a')); },
-				c => return Err(format!("unexpected character in maze: {:?}", c).into()),
+				c @ 'A'..='Z' => { tiles.insert((x, y), Tile::Gate(u8::try_from(c).expect("A..Z fits in u8") - b'A')); },
+				c @ 'a'..='z' => { tiles.insert((x, y), Tile::Key(u8::try_from(c).expect("a..z fits in u8") - b'a')); },
+				c => return Err(format!("unexpected character in maze: {c:?}").into()),
 			};
 		}
 	}
@@ -48,8 +48,7 @@ fn run_inner(input: impl Iterator<Item = Result<String, super::Error>>) -> Resul
 
 			match tiles.get(&pos) {
 				Some(Tile::Empty) if start.contains(&pos) => (),
-				Some(Tile::Key(_)) |
-				Some(Tile::Gate(_)) => (),
+				Some(Tile::Key(_) | Tile::Gate(_)) => (),
 				_ => continue,
 			};
 
@@ -86,7 +85,7 @@ fn run_inner(input: impl Iterator<Item = Result<String, super::Error>>) -> Resul
 						to_visit.push_back(((pos.0, pos.1 + 1), distance + 1));
 					},
 
-					Some(Tile::Gate(_)) | Some(Tile::Key(_)) => match neighbors.entry(pos) {
+					Some(Tile::Gate(_) | Tile::Key(_)) => match neighbors.entry(pos) {
 						std::collections::btree_map::Entry::Vacant(entry) => {
 							entry.insert(distance);
 						},
@@ -131,7 +130,7 @@ fn run_inner(input: impl Iterator<Item = Result<String, super::Error>>) -> Resul
 					return;
 				}
 				else if keys.len() == num_keys {
-					if result.compare_and_swap(result_value, distance, std::sync::atomic::Ordering::AcqRel) == result_value {
+					if result.compare_exchange_weak(result_value, distance, std::sync::atomic::Ordering::AcqRel, std::sync::atomic::Ordering::Acquire) == Ok(result_value) {
 						return;
 					}
 				}
@@ -155,7 +154,7 @@ fn run_inner(input: impl Iterator<Item = Result<String, super::Error>>) -> Resul
 			}
 
 			for (i, &pos) in all_pos.iter().enumerate() {
-				let reachable_keys = reachable_keys(&tiles, &neighbors, pos, keys);
+				let reachable_keys = reachable_keys(tiles, neighbors, pos, keys);
 
 				for (reachable_key_id, (reachable_key_pos, reachable_key_distance)) in reachable_keys {
 					if !keys.contains(reachable_key_id) {
@@ -196,10 +195,10 @@ impl std::fmt::Debug for BitField {
 		for i in 0..32 {
 			if self.contains(i) {
 				if first {
-					write!(f, " {}", (i + b'a') as char)?;
+					write!(f, " {}", char::from(i + b'a'))?;
 				}
 				else {
-					write!(f, ", {}", (i + b'a') as char)?;
+					write!(f, ", {}", char::from(i + b'a'))?;
 					first = true;
 				}
 			}

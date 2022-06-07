@@ -5,7 +5,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 	{
 		let result = part1(input.clone(), 100);
 
-		println!("16a: {}", result);
+		println!("16a: {result}");
 
 		assert_eq!(result, 68317988);
 	}
@@ -15,7 +15,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 		let result = part2(&input)?;
 
-		println!("16b: {}", result);
+		println!("16b: {result}");
 
 		assert_eq!(result, 53850800);
 	}
@@ -101,16 +101,14 @@ mod tests {
 	#[test]
 	fn test_part1() {
 		fn test(input: &str, num_phases: usize, expected_output: i32) {
-			let input = input.chars().map(|c| (c as u8 - b'0').into());
+			let input = input.chars().map(|c| (u8::try_from(c).unwrap() - b'0').into());
 			let actual_output = super::part1(input, num_phases);
 			assert_eq!(expected_output, actual_output);
 		}
 
 		test("12345678", 1, 48226158);
 		test("12345678", 2, 34040438);
-		#[allow(clippy::zero_prefixed_literal)]
 		test("12345678", 3, 03415518);
-		#[allow(clippy::zero_prefixed_literal)]
 		test("12345678", 4, 01029498);
 
 		test("80871224585914546619083218645595", 100, 24176176);
@@ -121,7 +119,7 @@ mod tests {
 	#[test]
 	fn test_part2() {
 		fn test(input: &str, expected_digest: i32) {
-			let input: Vec<_> = input.chars().map(|c| (c as u8 - b'0').into()).collect();
+			let input: Vec<_> = input.chars().map(|c| (u8::try_from(c).unwrap() - b'0').into()).collect();
 			let actual_digest = super::part2(&input).unwrap();
 			assert_eq!(expected_digest, actual_digest);
 		}

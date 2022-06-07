@@ -95,15 +95,15 @@ pub(crate) enum Instruction {
 impl std::fmt::Debug for Instruction {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
-			Instruction::Add(in1, in2, out) => write!(f, "{:?} <- {:?} + {:?}", out, in1, in2),
-			Instruction::Mul(in1, in2, out) => write!(f, "{:?} <- {:?} * {:?}", out, in1, in2),
-			Instruction::Store(out) => write!(f, "{:?} <- []", out),
-			Instruction::Output(r#in) => write!(f, "[] <- {:?}", r#in),
-			Instruction::JumpIfTrue(cond, r#in) => write!(f, "if {:?} != 0 then goto {:?}", cond, r#in),
-			Instruction::JumpIfFalse(cond, r#in) => write!(f, "if {:?} == 0 then goto {:?}", cond, r#in),
-			Instruction::LessThan(in1, in2, out) => write!(f, "{:?} <- if {:?} < {:?} then 1 else 0", out, in1, in2),
-			Instruction::Equals(in1, in2, out) => write!(f, "{:?} <- if {:?} == {:?} then 1 else 0", out, in1, in2),
-			Instruction::SetRelativeBase(r#in) => write!(f, "relative_base <- {:?}", r#in),
+			Instruction::Add(in1, in2, out) => write!(f, "{out:?} <- {in1:?} + {in2:?}"),
+			Instruction::Mul(in1, in2, out) => write!(f, "{out:?} <- {in1:?} * {in2:?}"),
+			Instruction::Store(out) => write!(f, "{out:?} <- []"),
+			Instruction::Output(r#in) => write!(f, "[] <- {in:?}"),
+			Instruction::JumpIfTrue(cond, r#in) => write!(f, "if {cond:?} != 0 then goto {in:?}"),
+			Instruction::JumpIfFalse(cond, r#in) => write!(f, "if {cond:?} == 0 then goto {in:?}"),
+			Instruction::LessThan(in1, in2, out) => write!(f, "{out:?} <- if {in1:?} < {in2:?} then 1 else 0"),
+			Instruction::Equals(in1, in2, out) => write!(f, "{out:?} <- if {in1:?} == {in2:?} then 1 else 0"),
+			Instruction::SetRelativeBase(r#in) => write!(f, "relative_base <- {in:?}"),
 			Instruction::Halt => write!(f, "!"),
 		}
 	}
@@ -113,7 +113,7 @@ impl Instruction {
 	pub(crate) fn parse(ram: &mut Ram, pc: &mut usize) -> Result<Self, super::Error> {
 		let opcode = ram.get(*pc);
 		if opcode < 0 {
-			return Err(format!("SIGILL({})", opcode).into());
+			return Err(format!("SIGILL({opcode})").into());
 		}
 		*pc += 1;
 
@@ -190,7 +190,7 @@ impl Instruction {
 
 			99 => Ok(Instruction::Halt),
 
-			opcode => Err(format!("SIGILL({})", opcode).into()),
+			opcode => Err(format!("SIGILL({opcode})").into()),
 		}
 	}
 
@@ -265,7 +265,7 @@ impl ParameterIn {
 			0 => Ok(ParameterIn::Position(value.try_into()?)),
 			1 => Ok(ParameterIn::Immediate(value)),
 			2 => Ok(ParameterIn::Relative(value.try_into()?)),
-			mode => Err(format!("invalid parameter mode {}", mode).into()),
+			mode => Err(format!("invalid parameter mode {mode}").into()),
 		}
 	}
 

@@ -119,7 +119,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 		let result = x * 100 + y;
 
-		println!("10b: {}", result);
+		println!("10b: {result}");
 
 		assert_eq!(result, 1309);
 	}

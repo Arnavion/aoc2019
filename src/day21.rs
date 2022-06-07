@@ -28,7 +28,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 				",
 			)?;
 
-		println!("21a: {}", result);
+		println!("21a: {result}");
 
 		assert_eq!(result, 19361850);
 	}
@@ -65,7 +65,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 				",
 			)?;
 
-		println!("21b: {}", result);
+		println!("21b: {result}");
 
 		assert_eq!(result, 1138943788);
 	}
@@ -83,21 +83,20 @@ fn run_inner(ram: crate::intcode::Ram, input: &[u8]) -> Result<i64, super::Error
 	let mut line = String::new();
 	let result = loop {
 		let output = computer.step(&mut input)?.ok_or("EOF")?;
-		if output > 127 {
-			// "a single giant integer outside the normal ASCII range"
-			break output;
-		}
-
-		#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-		match output as u8 {
-			b'\n' => {
+		match u8::try_from(output) {
+			Ok(b'\n') => {
 				if show_output {
-					println!("> {}", line);
+					println!("> {line}");
 				}
 				line.clear();
 			},
 
-			b => line.push(b as char),
+			Ok(b) if b <= 127 => line.push(b.into()),
+
+			_ => {
+				// "a single giant integer outside the normal ASCII range"
+				break output;
+			},
 		}
 	};
 

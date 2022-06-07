@@ -28,7 +28,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 		let result = result.ok_or("no solution")?;
 
-		println!("7a: {}", result);
+		println!("7a: {result}");
 
 		assert_eq!(result, 24625);
 	}
@@ -55,7 +55,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 
 		let result = result.ok_or("no solution")?;
 
-		println!("7b: {}", result);
+		println!("7b: {result}");
 
 		assert_eq!(result, 36497698);
 	}

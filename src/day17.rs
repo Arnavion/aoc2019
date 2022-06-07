@@ -63,7 +63,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			})
 			.sum();
 
-		println!("17a: {}", result);
+		println!("17a: {result}");
 
 		assert_eq!(result, 11140);
 	}
@@ -76,7 +76,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			b"A,A,B,B,C,B,C,B,C,A\nL,10,L,10,R,6\nR,12,L,12,L,12\nL,6,L,10,R,12,R,12\nn\n"
 			.iter()
 			.copied()
-			.map(|b| b.into());
+			.map(Into::into);
 
 		let result = loop {
 			let output = computer.step(&mut input)?.ok_or("program halted")?;
@@ -86,7 +86,7 @@ pub(super) fn run() -> Result<(), super::Error> {
 			}
 		};
 
-		println!("17b: {}", result);
+		println!("17b: {result}");
 
 		assert_eq!(result, 1113108);
 	}
